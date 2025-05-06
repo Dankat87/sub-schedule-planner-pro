@@ -12,6 +12,8 @@ import WeekCalendar from "./WeekCalendar";
 import TeacherList from "./TeacherList";
 import { Button } from "@/components/ui/button";
 import SubstitutionStatusBadge from "./SubstitutionStatusBadge";
+import { Card } from "@/components/ui/card";
+import { CalendarX } from "lucide-react";
 
 interface SubstitutionDetailModalProps {
   substitution: SubstitutionWithDetails | null;
@@ -104,6 +106,14 @@ const SubstitutionDetailModal: React.FC<SubstitutionDetailModalProps> = ({
     )
   );
 
+  // Get the dates for the week
+  const getDateString = (dayIndex: number) => {
+    const date = new Date(substitution.date);
+    const dayDiff = dayIndex - substitution.day;
+    date.setDate(date.getDate() + dayDiff);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  };
+
   return (
     <Dialog open={!!substitution} onOpenChange={() => onClose()}>
       <DialogContent className="max-w-7xl max-h-[90vh] flex flex-col">
@@ -119,18 +129,9 @@ const SubstitutionDetailModal: React.FC<SubstitutionDetailModalProps> = ({
           </DialogDescription>
         </DialogHeader>
 
-        {/* Content area */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 flex-1 overflow-hidden">
-          {/* Calendar column (takes 2/3 of space) */}
-          <div className="md:col-span-2 overflow-auto">
-            <WeekCalendar
-              selectedSubstitution={substitution}
-              overlayTeachers={overlayTeachers}
-              classLessons={uniqueClassLessons}
-            />
-          </div>
-
-          {/* Teacher list column (takes 1/3 of space) */}
+        {/* Content area with new layout */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 flex-1 overflow-hidden">
+          {/* Left column - Teacher selection (moved to top) */}
           <div className="md:col-span-1 flex flex-col">
             <TeacherList
               teachers={availableTeachers}
@@ -159,6 +160,74 @@ const SubstitutionDetailModal: React.FC<SubstitutionDetailModalProps> = ({
                 </div>
               )}
             </div>
+          </div>
+          
+          {/* Middle column - Calendar (takes 2/4 of space) */}
+          <div className="md:col-span-2 overflow-auto">
+            <WeekCalendar
+              selectedSubstitution={substitution}
+              overlayTeachers={overlayTeachers}
+              classLessons={uniqueClassLessons}
+            />
+          </div>
+
+          {/* Right column - Substitution details */}
+          <div className="md:col-span-1 overflow-auto">
+            <Card className="p-4 h-full">
+              <h3 className="font-medium text-lg mb-4 flex items-center gap-2">
+                <CalendarX className="text-amber-600" size={20} />
+                <span>Substitution Details</span>
+              </h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <h4 className="text-sm text-muted-foreground">Date</h4>
+                  <p className="font-medium">{getDateString(substitution.day)}</p>
+                </div>
+                
+                <div>
+                  <h4 className="text-sm text-muted-foreground">Period</h4>
+                  <p className="font-medium">Period {substitution.period}</p>
+                </div>
+
+                <div>
+                  <h4 className="text-sm text-muted-foreground">Class</h4>
+                  <p className="font-medium">{substitution.class.name}</p>
+                </div>
+
+                <div>
+                  <h4 className="text-sm text-muted-foreground">Subject</h4>
+                  <p className="font-medium">{substitution.subject.name}</p>
+                </div>
+
+                <div>
+                  <h4 className="text-sm text-muted-foreground">Original Teacher</h4>
+                  <p className="font-medium">{substitution.originalTeacher.name}</p>
+                </div>
+
+                <div>
+                  <h4 className="text-sm text-muted-foreground">Status</h4>
+                  <div className="mt-1">
+                    <SubstitutionStatusBadge isAssigned={substitution.isAssigned} />
+                  </div>
+                </div>
+                
+                {substitution.substituteTeacher && (
+                  <div>
+                    <h4 className="text-sm text-muted-foreground">Assigned To</h4>
+                    <p className="font-medium">{substitution.substituteTeacher.name}</p>
+                  </div>
+                )}
+
+                <div className="border-t pt-4">
+                  <h4 className="text-sm font-medium mb-2">Instructions</h4>
+                  <p className="text-sm text-muted-foreground">
+                    Please select a suitable substitute teacher from the list on the left.
+                    The calendar shows other lessons for this class during the week.
+                  </p>
+                </div>
+              </div>
+            </Card>
           </div>
         </div>
       </DialogContent>
