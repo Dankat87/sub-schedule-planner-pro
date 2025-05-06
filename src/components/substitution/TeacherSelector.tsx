@@ -44,15 +44,15 @@ const TeacherSelector: React.FC<TeacherSelectorProps> = ({
                   isAvailable 
                     ? "border-green-500 bg-green-50 hover:bg-green-100" 
                     : "text-gray-500 hover:text-gray-700"
-                } ${isSelected ? "ring-2 ring-offset-1" : ""}`}
+                } ${isSelected ? "ring-2 ring-offset-1 bg-green-800 hover:bg-green-700" : ""}`}
                 onClick={() => isAvailable ? onTeacherSelect(teacher) : null}
                 disabled={!isAvailable}
               >
                 <div className="flex flex-col items-start text-left">
-                  <span className={`${isAvailable ? "font-medium" : "font-normal"}`}>
+                  <span className={`${isAvailable ? "font-medium" : "font-normal"} ${isSelected ? "text-white" : ""}`}>
                     {teacher.name}
                   </span>
-                  <span className="text-xs truncate max-w-full">
+                  <span className={`text-xs truncate max-w-full ${isSelected ? "text-white/90" : ""}`}>
                     {teacher.subjects.join(", ")}
                   </span>
                 </div>
@@ -69,7 +69,7 @@ const TeacherSelector: React.FC<TeacherSelectorProps> = ({
             <Button 
               key={teacher.id}
               onClick={() => onAssignSubstitute(teacher.id)}
-              className="bg-green-600 hover:bg-green-700"
+              className="bg-green-800 hover:bg-green-700"
             >
               Assign {teacher.name}
             </Button>

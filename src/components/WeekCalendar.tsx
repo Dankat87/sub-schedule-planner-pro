@@ -2,7 +2,7 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
 import { Teacher } from "@/types/substitution";
-import { CalendarXIcon, Clock } from "lucide-react";
+import { CalendarXIcon, Clock, BookOpen } from "lucide-react";
 
 interface WeekCalendarProps {
   selectedSubstitution: {
@@ -47,15 +47,17 @@ const WeekCalendar: React.FC<WeekCalendarProps> = ({
       (lesson) => lesson.day === day && lesson.period === period
     );
   };
-
-  // Check if any selected teacher has a free slot at this day and period
-  const isTeacherFreeSlot = (day: number, period: number) => {
+  
+  // Check if a selected teacher has a lesson at this day and period
+  // This is a new function to check for teacher lessons
+  const isTeacherLesson = (day: number, period: number) => {
     if (overlayTeachers.length === 0) return false;
     
+    // For this example, we'll assume a teacher has a lesson when they are NOT available
+    // In a real app, you'd have actual teacher schedule data
     return overlayTeachers.some(teacher => 
-      isTeacherAvailable(teacher, day, period) && 
-      // We're assuming the teacher doesn't have another class at this time
-      // In a real app, you'd check against the teacher's schedule
+      !isTeacherAvailable(teacher, day, period) &&
+      // Don't mark the substitution slot as a teacher lesson
       !(day === selectedSubstitution.day && period === selectedSubstitution.period)
     );
   };
@@ -103,7 +105,7 @@ const WeekCalendar: React.FC<WeekCalendarProps> = ({
                 const isSelectedCell = dayIndex === selectedSubstitution.day && period === selectedSubstitution.period;
                 const classLesson = getClassLesson(dayIndex, period);
                 const hasLesson = !!classLesson;
-                const isFreeSlot = isTeacherFreeSlot(dayIndex, period);
+                const hasTeacherLesson = isTeacherLesson(dayIndex, period);
                 
                 return (
                   <Card
@@ -113,7 +115,7 @@ const WeekCalendar: React.FC<WeekCalendarProps> = ({
                     } ${
                       isSelectedCell ? "bg-amber-100 border-amber-300 ring-2 ring-amber-300" : ""
                     } ${
-                      isFreeSlot && !isSelectedCell ? "bg-green-50 border-green-200" : ""
+                      hasTeacherLesson ? "bg-blue-100 border-blue-200" : ""
                     }`}
                   >
                     {/* Class lesson indicator */}
@@ -131,11 +133,11 @@ const WeekCalendar: React.FC<WeekCalendarProps> = ({
                       </div>
                     )}
                     
-                    {/* Free slot indicator */}
-                    {isFreeSlot && !isSelectedCell && (
-                      <div className="flex items-center space-x-1 mb-1 px-1 py-0.5 bg-green-200 rounded text-green-800">
-                        <Clock size={14} />
-                        <span className="text-xs font-semibold">Available</span>
+                    {/* Teacher lesson indicator - NEW */}
+                    {hasTeacherLesson && !isSelectedCell && (
+                      <div className="flex items-center space-x-1 mb-1 px-1 py-0.5 bg-blue-200 rounded text-blue-800">
+                        <BookOpen size={14} />
+                        <span className="text-xs font-semibold">Teaching</span>
                       </div>
                     )}
                     
