@@ -129,105 +129,133 @@ const SubstitutionDetailModal: React.FC<SubstitutionDetailModalProps> = ({
           </DialogDescription>
         </DialogHeader>
 
-        {/* Content area with new layout */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 flex-1 overflow-hidden">
-          {/* Left column - Teacher selection (moved to top) */}
-          <div className="md:col-span-1 flex flex-col">
-            <TeacherList
-              teachers={availableTeachers}
-              selectedTeachers={overlayTeachers}
-              onTeacherClick={handleTeacherClick}
-            />
-
-            {/* Assignment actions */}
-            <div className="mt-6 border-t pt-4">
-              <h4 className="font-medium mb-2">Assign Substitute</h4>
-              {overlayTeachers.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
-                  Select a teacher from the list to view their schedule and assign them
-                </p>
-              ) : (
-                <div className="space-y-2">
-                  {overlayTeachers.map(teacher => (
-                    <Button 
-                      key={teacher.id} 
-                      className="w-full"
-                      onClick={() => handleAssignSubstitute(teacher.id)}
+        {/* New layout - First row with teacher selection */}
+        <div className="flex flex-col gap-6 flex-1 overflow-hidden">
+          {/* First row - Teacher selection with highlighting */}
+          <div className="w-full">
+            <div className="bg-gray-50 p-4 rounded-md">
+              <h3 className="font-medium mb-4">Available Teachers</h3>
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+                {allTeachers.map((teacher) => {
+                  const isAvailable = teacher.id !== substitution.originalTeacher.id && 
+                    teacher.availability.some(
+                      a => a.day === substitution.day && 
+                           a.period === substitution.period && 
+                           a.available
+                    );
+                  const isSelected = overlayTeachers.some((t) => t.id === teacher.id);
+                  
+                  return (
+                    <Button
+                      key={teacher.id}
+                      variant={isSelected ? "default" : "outline"}
+                      className={`w-full h-auto py-2 px-3 justify-start ${
+                        isAvailable 
+                          ? "border-green-500 bg-green-50 hover:bg-green-100" 
+                          : "text-gray-500 hover:text-gray-700"
+                      } ${isSelected ? "ring-2 ring-offset-1" : ""}`}
+                      onClick={() => isAvailable ? handleTeacherClick(teacher) : null}
+                      disabled={!isAvailable}
                     >
-                      Assign {teacher.name}
+                      <div className="flex flex-col items-start text-left">
+                        <span className={`${isAvailable ? "font-medium" : "font-normal"}`}>
+                          {teacher.name}
+                        </span>
+                        <span className="text-xs truncate max-w-full">
+                          {teacher.subjects.join(", ")}
+                        </span>
+                      </div>
                     </Button>
-                  ))}
-                </div>
-              )}
+                  );
+                })}
+              </div>
             </div>
+            
+            {/* Action buttons for selected teachers */}
+            {overlayTeachers.length > 0 && (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {overlayTeachers.map(teacher => (
+                  <Button 
+                    key={teacher.id}
+                    onClick={() => handleAssignSubstitute(teacher.id)}
+                    className="bg-green-600 hover:bg-green-700"
+                  >
+                    Assign {teacher.name}
+                  </Button>
+                ))}
+              </div>
+            )}
           </div>
           
-          {/* Middle column - Calendar (takes 2/4 of space) */}
-          <div className="md:col-span-2 overflow-auto">
-            <WeekCalendar
-              selectedSubstitution={substitution}
-              overlayTeachers={overlayTeachers}
-              classLessons={uniqueClassLessons}
-            />
-          </div>
-
-          {/* Right column - Substitution details */}
-          <div className="md:col-span-1 overflow-auto">
-            <Card className="p-4 h-full">
-              <h3 className="font-medium text-lg mb-4 flex items-center gap-2">
-                <CalendarX className="text-amber-600" size={20} />
-                <span>Substitution Details</span>
-              </h3>
-              
-              <div className="space-y-4">
-                <div>
-                  <h4 className="text-sm text-muted-foreground">Date</h4>
-                  <p className="font-medium">{getDateString(substitution.day)}</p>
-                </div>
+          {/* Second row - Calendar and details */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 flex-1">
+            {/* Calendar view (takes 2/3 of space) */}
+            <div className="md:col-span-2 overflow-auto">
+              <WeekCalendar
+                selectedSubstitution={substitution}
+                overlayTeachers={overlayTeachers}
+                classLessons={uniqueClassLessons}
+              />
+            </div>
+            
+            {/* Substitution details (takes 1/3 of space) */}
+            <div className="md:col-span-1 overflow-auto">
+              <Card className="p-4 h-full">
+                <h3 className="font-medium text-lg mb-4 flex items-center gap-2">
+                  <CalendarX className="text-amber-600" size={20} />
+                  <span>Substitution Details</span>
+                </h3>
                 
-                <div>
-                  <h4 className="text-sm text-muted-foreground">Period</h4>
-                  <p className="font-medium">Period {substitution.period}</p>
-                </div>
-
-                <div>
-                  <h4 className="text-sm text-muted-foreground">Class</h4>
-                  <p className="font-medium">{substitution.class.name}</p>
-                </div>
-
-                <div>
-                  <h4 className="text-sm text-muted-foreground">Subject</h4>
-                  <p className="font-medium">{substitution.subject.name}</p>
-                </div>
-
-                <div>
-                  <h4 className="text-sm text-muted-foreground">Original Teacher</h4>
-                  <p className="font-medium">{substitution.originalTeacher.name}</p>
-                </div>
-
-                <div>
-                  <h4 className="text-sm text-muted-foreground">Status</h4>
-                  <div className="mt-1">
-                    <SubstitutionStatusBadge isAssigned={substitution.isAssigned} />
-                  </div>
-                </div>
-                
-                {substitution.substituteTeacher && (
+                <div className="space-y-4">
                   <div>
-                    <h4 className="text-sm text-muted-foreground">Assigned To</h4>
-                    <p className="font-medium">{substitution.substituteTeacher.name}</p>
+                    <h4 className="text-sm text-muted-foreground">Date</h4>
+                    <p className="font-medium">{getDateString(substitution.day)}</p>
                   </div>
-                )}
+                  
+                  <div>
+                    <h4 className="text-sm text-muted-foreground">Period</h4>
+                    <p className="font-medium">Period {substitution.period}</p>
+                  </div>
 
-                <div className="border-t pt-4">
-                  <h4 className="text-sm font-medium mb-2">Instructions</h4>
-                  <p className="text-sm text-muted-foreground">
-                    Please select a suitable substitute teacher from the list on the left.
-                    The calendar shows other lessons for this class during the week.
-                  </p>
+                  <div>
+                    <h4 className="text-sm text-muted-foreground">Class</h4>
+                    <p className="font-medium">{substitution.class.name}</p>
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm text-muted-foreground">Subject</h4>
+                    <p className="font-medium">{substitution.subject.name}</p>
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm text-muted-foreground">Original Teacher</h4>
+                    <p className="font-medium">{substitution.originalTeacher.name}</p>
+                  </div>
+
+                  <div>
+                    <h4 className="text-sm text-muted-foreground">Status</h4>
+                    <div className="mt-1">
+                      <SubstitutionStatusBadge isAssigned={substitution.isAssigned} />
+                    </div>
+                  </div>
+                  
+                  {substitution.substituteTeacher && (
+                    <div>
+                      <h4 className="text-sm text-muted-foreground">Assigned To</h4>
+                      <p className="font-medium">{substitution.substituteTeacher.name}</p>
+                    </div>
+                  )}
+
+                  <div className="border-t pt-4">
+                    <h4 className="text-sm font-medium mb-2">Instructions</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Select a teacher from the list above to view their schedule and availability.
+                      Green highlighted teachers are available for this time slot.
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </Card>
+              </Card>
+            </div>
           </div>
         </div>
       </DialogContent>
