@@ -1,10 +1,11 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { SubstitutionWithDetails, Teacher } from "@/types/substitution";
 import WeekCalendar from "./WeekCalendar";
@@ -31,6 +32,50 @@ const SubstitutionDetailModal: React.FC<SubstitutionDetailModalProps> = ({
   const [overlayTeachers, setOverlayTeachers] = useState<Teacher[]>([]);
   
   if (!substitution) return null;
+
+  // Mock class lessons data - In a real app, this would come from an API
+  const classLessons = [
+    // Monday
+    { day: 0, period: 1, subject: "Math" },
+    { day: 0, period: 2, subject: "English" },
+    { day: 0, period: 4, subject: substitution.subject.name },
+    { day: 0, period: 6, subject: "History" },
+    // Tuesday
+    { day: 1, period: 2, subject: "Physics" },
+    { day: 1, period: 3, subject: substitution.subject.name },
+    { day: 1, period: 5, subject: "Art" },
+    { day: 1, period: 7, subject: "PE" },
+    // Wednesday
+    { day: 2, period: 1, subject: "Chemistry" },
+    { day: 2, period: 3, subject: "Math" },
+    { day: 2, period: 4, subject: substitution.subject.name },
+    { day: 2, period: 6, subject: "Biology" },
+    // Thursday
+    { day: 3, period: 2, subject: "English" },
+    { day: 3, period: 4, subject: "History" },
+    { day: 3, period: 5, subject: substitution.subject.name },
+    { day: 3, period: 7, subject: "Music" },
+    // Friday
+    { day: 4, period: 1, subject: "Geography" },
+    { day: 4, period: 3, subject: "Math" },
+    { day: 4, period: 5, subject: "PE" },
+    { day: 4, period: 6, subject: substitution.subject.name },
+    // Add the selected substitution lesson if not already included
+    { 
+      day: substitution.day, 
+      period: substitution.period, 
+      subject: substitution.subject.name 
+    },
+  ];
+
+  // Remove duplicates
+  const uniqueClassLessons = classLessons.filter(
+    (lesson, index, self) =>
+      index ===
+      self.findIndex(
+        (l) => l.day === lesson.day && l.period === lesson.period
+      )
+  );
 
   const handleTeacherClick = (teacher: Teacher) => {
     setOverlayTeachers((current) => {
@@ -69,9 +114,9 @@ const SubstitutionDetailModal: React.FC<SubstitutionDetailModalProps> = ({
             </div>
             <SubstitutionStatusBadge isAssigned={substitution.isAssigned} />
           </DialogTitle>
-          <div className="text-sm text-muted-foreground">
+          <DialogDescription>
             Original Teacher: {substitution.originalTeacher.name}
-          </div>
+          </DialogDescription>
         </DialogHeader>
 
         {/* Content area */}
@@ -81,6 +126,7 @@ const SubstitutionDetailModal: React.FC<SubstitutionDetailModalProps> = ({
             <WeekCalendar
               selectedSubstitution={substitution}
               overlayTeachers={overlayTeachers}
+              classLessons={uniqueClassLessons}
             />
           </div>
 

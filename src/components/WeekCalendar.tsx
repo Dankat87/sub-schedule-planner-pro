@@ -2,6 +2,7 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
 import { Teacher } from "@/types/substitution";
+import { CalendarXIcon } from "lucide-react";
 
 interface WeekCalendarProps {
   selectedSubstitution: {
@@ -10,11 +11,17 @@ interface WeekCalendarProps {
     date: string;
   };
   overlayTeachers: Teacher[];
+  classLessons?: {
+    day: number;
+    period: number;
+    subject: string;
+  }[];
 }
 
 const WeekCalendar: React.FC<WeekCalendarProps> = ({
   selectedSubstitution,
   overlayTeachers,
+  classLessons = [],
 }) => {
   const weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
   const periods = Array.from({ length: 8 }, (_, i) => i + 1);
@@ -31,6 +38,13 @@ const WeekCalendar: React.FC<WeekCalendarProps> = ({
   const isTeacherAvailable = (teacher: Teacher, day: number, period: number) => {
     return teacher.availability.some(
       (a) => a.day === day && a.period === period && a.available
+    );
+  };
+
+  // Check if there's a lesson for the class at the specified day and period
+  const getClassLesson = (day: number, period: number) => {
+    return classLessons.find(
+      (lesson) => lesson.day === day && lesson.period === period
     );
   };
 
@@ -75,22 +89,35 @@ const WeekCalendar: React.FC<WeekCalendarProps> = ({
               {periods.map((period) => {
                 // Is this the selected substitution cell?
                 const isSelectedCell = dayIndex === selectedSubstitution.day && period === selectedSubstitution.period;
+                const classLesson = getClassLesson(dayIndex, period);
+                const hasLesson = !!classLesson;
                 
                 return (
                   <Card
                     key={`${day}-${period}`}
                     className={`h-20 p-1 relative ${
-                      isSelectedCell ? "bg-amber-100 border-amber-300" : ""
+                      !hasLesson ? "bg-gray-50" : ""
+                    } ${
+                      isSelectedCell ? "bg-amber-100 border-amber-300 ring-2 ring-amber-300" : ""
                     }`}
                   >
+                    {/* Class lesson indicator */}
+                    {hasLesson && !isSelectedCell && (
+                      <div className="text-xs font-medium px-1 py-0.5 bg-gray-100 rounded mb-1">
+                        {classLesson.subject}
+                      </div>
+                    )}
+                    
+                    {/* Substitution needed indicator */}
                     {isSelectedCell && (
-                      <div className="absolute inset-0 flex items-center justify-center opacity-30">
-                        <span className="font-bold">NEEDED</span>
+                      <div className="flex items-center space-x-1 mb-1 px-1 py-0.5 bg-amber-200 rounded text-amber-800">
+                        <CalendarXIcon size={14} />
+                        <span className="text-xs font-semibold">Substitution Needed</span>
                       </div>
                     )}
                     
                     {/* Overlay teachers' availability */}
-                    <div className="absolute inset-0 flex flex-col p-1">
+                    <div className="absolute inset-0 flex flex-col p-1 pt-8">
                       {overlayTeachers.map((teacher, index) => {
                         if (isTeacherAvailable(teacher, dayIndex, period)) {
                           return (
