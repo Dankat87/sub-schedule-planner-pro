@@ -2,6 +2,8 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Teacher } from "@/types/substitution";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { X } from "lucide-react";
 
 interface TeacherSelectorProps {
   teachers: Teacher[];
@@ -11,6 +13,9 @@ interface TeacherSelectorProps {
   selectedTeachers: Teacher[];
   onTeacherSelect: (teacher: Teacher) => void;
   onAssignSubstitute: (teacherId: string) => void;
+  onUnassignSubstitute?: () => void;
+  isSubstitutionAssigned: boolean;
+  substituteTeacher?: Teacher | null;
 }
 
 const TeacherSelector: React.FC<TeacherSelectorProps> = ({
@@ -21,7 +26,63 @@ const TeacherSelector: React.FC<TeacherSelectorProps> = ({
   selectedTeachers,
   onTeacherSelect,
   onAssignSubstitute,
+  onUnassignSubstitute,
+  isSubstitutionAssigned,
+  substituteTeacher,
 }) => {
+  // If a substitute is already assigned, show unassign UI
+  if (isSubstitutionAssigned && substituteTeacher) {
+    return (
+      <div className="w-full">
+        <div className="bg-gray-50 p-4 rounded-md">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+              <h3 className="font-medium mb-1">Currently Assigned</h3>
+              <div className="flex items-center gap-2">
+                <span className="bg-green-100 text-green-800 px-3 py-1 rounded-md font-medium">
+                  {substituteTeacher.name}
+                </span>
+                <span className="text-sm text-muted-foreground">
+                  ({substituteTeacher.subjects.join(", ")})
+                </span>
+              </div>
+            </div>
+            
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="destructive" size="sm">
+                  <X size={16} className="mr-1" /> Unassign Teacher
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Unassign substitute teacher?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will remove {substituteTeacher.name} as the substitute for this class. 
+                    You'll need to assign a new substitute teacher afterwards.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction onClick={onUnassignSubstitute}>
+                    Unassign
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+          
+          <div className="mt-4 pt-4 border-t">
+            <p className="text-sm text-muted-foreground">
+              You must unassign the current substitute teacher before assigning a new one.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show regular teacher selection UI if no substitute is assigned
   return (
     <div className="w-full">
       <div className="bg-gray-50 p-4 rounded-md">

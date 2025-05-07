@@ -76,6 +76,50 @@ const Index = () => {
       });
     }
   };
+  
+  const handleUnassignSubstitute = (substitutionId: string) => {
+    // In a real app, this would make an API call to update the assignment
+    // For now, we'll update our local state
+    const subToUpdate = allSubstitutions.find(s => s.id === substitutionId);
+    
+    if (subToUpdate && subToUpdate.substituteTeacher) {
+      const teacherName = subToUpdate.substituteTeacher.name;
+      const className = subToUpdate.class.name;
+      const subjectName = subToUpdate.subject.name;
+      
+      const updatedSubstitutions = allSubstitutions.map(sub => {
+        if (sub.id === substitutionId) {
+          return {
+            ...sub,
+            substituteTeacher: null,
+            substituteTeacherId: null,
+            isAssigned: false
+          };
+        }
+        return sub;
+      });
+      
+      setAllSubstitutions(updatedSubstitutions);
+      
+      // If the substitution we're updating is the selected one,
+      // update that as well
+      if (selectedSubstitution?.id === substitutionId) {
+        setSelectedSubstitution(prev => 
+          prev ? {
+            ...prev,
+            substituteTeacher: null,
+            substituteTeacherId: null,
+            isAssigned: false
+          } : null
+        );
+      }
+      
+      toast({
+        title: "Substitute Unassigned",
+        description: `${teacherName} has been removed from ${className} - ${subjectName}`,
+      });
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -113,6 +157,7 @@ const Index = () => {
           allTeachers={teachers}
           onClose={handleCloseModal}
           onAssignSubstitute={handleAssignSubstitute}
+          onUnassignSubstitute={handleUnassignSubstitute}
         />
       </main>
     </div>

@@ -22,6 +22,7 @@ interface SubstitutionDetailModalProps {
     substitutionId: string, 
     substituteTeacherId: string
   ) => void;
+  onUnassignSubstitute?: (substitutionId: string) => void;
 }
 
 const SubstitutionDetailModal: React.FC<SubstitutionDetailModalProps> = ({
@@ -29,6 +30,7 @@ const SubstitutionDetailModal: React.FC<SubstitutionDetailModalProps> = ({
   allTeachers,
   onClose,
   onAssignSubstitute,
+  onUnassignSubstitute,
 }) => {
   const [overlayTeachers, setOverlayTeachers] = useState<Teacher[]>([]);
   
@@ -95,6 +97,13 @@ const SubstitutionDetailModal: React.FC<SubstitutionDetailModalProps> = ({
     onClose();
   };
 
+  const handleUnassignSubstitute = () => {
+    if (onUnassignSubstitute) {
+      onUnassignSubstitute(substitution.id);
+      setOverlayTeachers([]);
+    }
+  };
+
   return (
     <Dialog open={!!substitution} onOpenChange={() => onClose()}>
       <DialogContent className="max-w-7xl h-[90vh] p-6 flex flex-col">
@@ -122,6 +131,9 @@ const SubstitutionDetailModal: React.FC<SubstitutionDetailModalProps> = ({
               selectedTeachers={overlayTeachers}
               onTeacherSelect={handleTeacherClick}
               onAssignSubstitute={handleAssignSubstitute}
+              onUnassignSubstitute={handleUnassignSubstitute}
+              isSubstitutionAssigned={substitution.isAssigned}
+              substituteTeacher={substitution.substituteTeacher}
             />
             
             {/* Second row - Calendar and details */}
