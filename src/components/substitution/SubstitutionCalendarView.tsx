@@ -23,7 +23,7 @@ const SubstitutionCalendarView: React.FC<SubstitutionCalendarViewProps> = ({
   classLessons = [],
 }) => {
   return (
-    <div className="overflow-auto">
+    <div className="w-full">
       <WeekCalendar
         selectedSubstitution={substitution}
         overlayTeachers={overlayTeachers}

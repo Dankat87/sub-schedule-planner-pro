@@ -12,6 +12,7 @@ import SubstitutionStatusBadge from "./SubstitutionStatusBadge";
 import TeacherSelector from "./substitution/TeacherSelector";
 import SubstitutionDetails from "./substitution/SubstitutionDetails";
 import SubstitutionCalendarView from "./substitution/SubstitutionCalendarView";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface SubstitutionDetailModalProps {
   substitution: SubstitutionWithDetails | null;
@@ -96,8 +97,8 @@ const SubstitutionDetailModal: React.FC<SubstitutionDetailModalProps> = ({
 
   return (
     <Dialog open={!!substitution} onOpenChange={() => onClose()}>
-      <DialogContent className="max-w-7xl max-h-[90vh] flex flex-col">
-        <DialogHeader>
+      <DialogContent className="max-w-7xl h-[90vh] p-6 flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center justify-between">
             <div>
               Substitution Details - {substitution.class.name} - {substitution.subject.name}
@@ -110,44 +111,46 @@ const SubstitutionDetailModal: React.FC<SubstitutionDetailModalProps> = ({
         </DialogHeader>
 
         {/* Main layout */}
-        <div className="flex flex-col gap-6 flex-1 overflow-hidden">
-          {/* First row - Teacher selection */}
-          <TeacherSelector 
-            teachers={allTeachers}
-            originalTeacherId={substitution.originalTeacher.id}
-            substitutionDay={substitution.day}
-            substitutionPeriod={substitution.period}
-            selectedTeachers={overlayTeachers}
-            onTeacherSelect={handleTeacherClick}
-            onAssignSubstitute={handleAssignSubstitute}
-          />
-          
-          {/* Second row - Calendar and details */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 flex-1">
-            {/* Calendar view (takes 2/3 of space) */}
-            <div className="md:col-span-2">
-              <SubstitutionCalendarView 
-                substitution={substitution}
-                overlayTeachers={overlayTeachers}
-                classLessons={uniqueClassLessons}
-              />
-            </div>
+        <ScrollArea className="flex-1 pr-4">
+          <div className="flex flex-col gap-6">
+            {/* First row - Teacher selection */}
+            <TeacherSelector 
+              teachers={allTeachers}
+              originalTeacherId={substitution.originalTeacher.id}
+              substitutionDay={substitution.day}
+              substitutionPeriod={substitution.period}
+              selectedTeachers={overlayTeachers}
+              onTeacherSelect={handleTeacherClick}
+              onAssignSubstitute={handleAssignSubstitute}
+            />
             
-            {/* Substitution details (takes 1/3 of space) */}
-            <div className="md:col-span-1">
-              <SubstitutionDetails
-                day={substitution.day}
-                period={substitution.period}
-                date={substitution.date}
-                className={substitution.class.name}
-                subjectName={substitution.subject.name}
-                originalTeacherName={substitution.originalTeacher.name}
-                isAssigned={substitution.isAssigned}
-                substituteTeacherName={substitution.substituteTeacher?.name}
-              />
+            {/* Second row - Calendar and details */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Calendar view (takes 2/3 of space) */}
+              <div className="md:col-span-2">
+                <SubstitutionCalendarView 
+                  substitution={substitution}
+                  overlayTeachers={overlayTeachers}
+                  classLessons={uniqueClassLessons}
+                />
+              </div>
+              
+              {/* Substitution details (takes 1/3 of space) */}
+              <div className="md:col-span-1">
+                <SubstitutionDetails
+                  day={substitution.day}
+                  period={substitution.period}
+                  date={substitution.date}
+                  className={substitution.class.name}
+                  subjectName={substitution.subject.name}
+                  originalTeacherName={substitution.originalTeacher.name}
+                  isAssigned={substitution.isAssigned}
+                  substituteTeacherName={substitution.substituteTeacher?.name}
+                />
+              </div>
             </div>
           </div>
-        </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
