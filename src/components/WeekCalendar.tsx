@@ -1,8 +1,7 @@
-
 import React from "react";
 import { Card } from "@/components/ui/card";
 import { Teacher } from "@/types/substitution";
-import { CalendarXIcon, Clock, BookOpen } from "lucide-react";
+import { CalendarXIcon, BookOpen } from "lucide-react";
 
 interface WeekCalendarProps {
   selectedSubstitution: {
@@ -49,7 +48,6 @@ const WeekCalendar: React.FC<WeekCalendarProps> = ({
   };
   
   // Check if a selected teacher has a lesson at this day and period
-  // This is a new function to check for teacher lessons
   const isTeacherLesson = (day: number, period: number) => {
     if (overlayTeachers.length === 0) return false;
     
@@ -62,16 +60,31 @@ const WeekCalendar: React.FC<WeekCalendarProps> = ({
     );
   };
 
-  // Generate color for each teacher (consistent across calendar)
-  const getTeacherColor = (index: number) => {
-    const colors = [
-      "bg-blue-100 border-blue-300",
-      "bg-green-100 border-green-300",
-      "bg-purple-100 border-purple-300",
-      "bg-pink-100 border-pink-300",
-      "bg-yellow-100 border-yellow-300",
-    ];
-    return colors[index % colors.length];
+  // Mock data for teacher lessons - in a real app, this would come from an API
+  const getTeacherLessonInfo = (day: number, period: number) => {
+    // Only called for teacher lessons, so we can assume at least one teacher is not available
+    // Generate some mock data for display purposes
+    const classNames = ["10A", "9B", "11C", "8D", "12A"];
+    const rooms = ["Room 101", "Room 203", "Lab A", "Gym", "Music Hall"];
+    
+    // Find all teachers who are busy at this time
+    const busyTeachers = overlayTeachers.filter(teacher => 
+      !isTeacherAvailable(teacher, day, period) &&
+      !(day === selectedSubstitution.day && period === selectedSubstitution.period)
+    );
+    
+    if (busyTeachers.length === 0) return null;
+    
+    // For real implementation, you would fetch actual data
+    // For now, we'll use deterministic "random" data based on day and period
+    const teacherIndex = busyTeachers[0].id.charCodeAt(0) % 5;
+    const classIndex = (day + period) % 5;
+    
+    return {
+      teacher: busyTeachers[0].name,
+      className: classNames[classIndex],
+      room: rooms[(day + period + teacherIndex) % 5]
+    };
   };
 
   return (
@@ -106,6 +119,7 @@ const WeekCalendar: React.FC<WeekCalendarProps> = ({
                 const classLesson = getClassLesson(dayIndex, period);
                 const hasLesson = !!classLesson;
                 const hasTeacherLesson = isTeacherLesson(dayIndex, period);
+                const teacherLessonInfo = hasTeacherLesson ? getTeacherLessonInfo(dayIndex, period) : null;
                 
                 return (
                   <Card
@@ -115,7 +129,7 @@ const WeekCalendar: React.FC<WeekCalendarProps> = ({
                     } ${
                       isSelectedCell ? "bg-amber-100 border-amber-300 ring-2 ring-amber-300" : ""
                     } ${
-                      hasTeacherLesson ? "bg-blue-100 border-blue-200" : ""
+                      hasTeacherLesson ? "bg-blue-700 border-blue-800 text-white" : ""
                     }`}
                   >
                     {/* Class lesson indicator */}
@@ -133,33 +147,24 @@ const WeekCalendar: React.FC<WeekCalendarProps> = ({
                       </div>
                     )}
                     
-                    {/* Teacher lesson indicator - NEW */}
-                    {hasTeacherLesson && !isSelectedCell && (
-                      <div className="flex items-center space-x-1 mb-1 px-1 py-0.5 bg-blue-200 rounded text-blue-800">
-                        <BookOpen size={14} />
-                        <span className="text-xs font-semibold">Teaching</span>
+                    {/* Teacher lesson indicator - Updated with class and room info */}
+                    {hasTeacherLesson && teacherLessonInfo && !isSelectedCell && (
+                      <div className="flex flex-col space-y-1 mb-1 p-1">
+                        <div className="flex items-center space-x-1">
+                          <BookOpen size={14} className="text-white" />
+                          <span className="text-xs font-semibold text-white">Teaching</span>
+                        </div>
+                        <div className="text-xs text-white font-medium">
+                          {teacherLessonInfo.className}
+                        </div>
+                        <div className="text-xs text-white">
+                          {teacherLessonInfo.room}
+                        </div>
                       </div>
                     )}
                     
-                    {/* Overlay teachers' availability */}
-                    <div className="absolute inset-0 flex flex-col p-1 pt-8">
-                      {overlayTeachers.map((teacher, index) => {
-                        if (isTeacherAvailable(teacher, dayIndex, period)) {
-                          return (
-                            <div
-                              key={teacher.id}
-                              className={`text-xs mb-1 px-1 py-0.5 rounded border ${getTeacherColor(
-                                index
-                              )} truncate`}
-                              title={teacher.name}
-                            >
-                              {teacher.name}
-                            </div>
-                          );
-                        }
-                        return null;
-                      })}
-                    </div>
+                    {/* We remove the teacher availability display since we only want 
+                        to show where teachers are teaching, not where they're free */}
                   </Card>
                 );
               })}
